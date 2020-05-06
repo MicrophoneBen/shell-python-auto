@@ -296,9 +296,8 @@ else
     STATUS|status|status) model_status;;
     RESTART|Restart|restart)
         model_stop
-        statistic_jar_file
-        chose_to_run
         file_is_exist
+        MODEL_JAR=` ps -ef |grep -w "${GREP_KEY}" |grep ${localServerId}| grep -v grep | awk '{print $18}' `
         model_start
         ;;
     *) echo "illage parameter : $1";print_usage;;

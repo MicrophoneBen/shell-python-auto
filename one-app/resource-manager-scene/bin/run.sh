@@ -192,9 +192,11 @@ else
         if [[ $MODEL_DAEMON -eq "0" ]]
         then
                 echo "try to start ${MODEL_NAME} ... foreground"
+                echo "当前应用启动的JVM参数为 ： $JVM_VARS"
                 $JAVA_HOME/bin/java -${GREP_KEY} ${MODEL_OPTS} -jar ${JVM_VARS} ${MODEL_JAR} ${MODEL_VARS}
         else
                 echo "try to start ${MODEL_NAME} ... backgroud"
+                echo "当前应用启动的JVM参数为 ： $JVM_VARS"
                 nohup $JAVA_HOME/bin/java -${GREP_KEY} ${MODEL_OPTS} -jar ${JVM_VARS} ${MODEL_JAR} ${MODEL_VARS} 1>&- 2>>${MODEL_LOG} &
                 sleep $SLEEP_MIN
                 modelService_is_exist
@@ -311,6 +313,5 @@ fi
 # main
 #-------------------------------------------------------------------
 
-echo "当前应用启动的默认JVM参数为 ： $JVM_VARS"
 parse_para $1 $2
 

@@ -265,8 +265,25 @@ fi
 }
 
 #-------------------------------------------------------------------
-#
+# function restart  application
 #-------------------------------------------------------------------
+restart_app(){
+    echo -n "请确认是否重启 ${MODEL_NAME} 模块?[yes|Y|N|no]"
+    read ans
+    case "${ans}" in
+        YES|Y|yes|y)
+            model_status
+            MODEL_JAR=` ps -ef |grep ${localServerId}| grep -v grep | awk '{print $18}' `
+            model_stop
+            file_is_exist
+            echo "${MODEL_JAR}"
+            model_start
+            ;;
+        NO|N|no|n)
+            exit 0
+            ;;
+    esac
+}
 
 #-------------------------------------------------------------------
 # function parse_para
@@ -296,14 +313,7 @@ else
         ;;
     STOP|Stop|stop) model_stop;;
     STATUS|status|status) model_status;;
-    RESTART|Restart|restart)
-        model_status
-        MODEL_JAR=` ps -ef |grep ${localServerId}| grep -v grep | awk '{print $18}' `
-        model_stop
-        file_is_exist
-        echo "${MODEL_JAR}"
-        model_start
-        ;;
+    RESTART|Restart|restart) restart_app;;
     *) echo "illage parameter : $1";print_usage;;
     esac
 fi

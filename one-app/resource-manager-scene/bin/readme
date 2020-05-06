@@ -1,0 +1,32 @@
+1、maven打包方式：
+（1）不指定profile,默认打生产环境的tar包：mvn clean package
+（1）指定profile为test,打开发环境的tar包：mvn clean package -P test
+
+2、部署：
+解压suntek-dgs-admin.zip生成/suntek-dgs-admin目录
+
+3、启动方式：
+进入/suntek-dgs-admin/bin目录
+输入sh run.sh start 可进行启动
+
+4、关闭方式：
+进入/suntek-dgs-admin/bin目录
+输入sh run.sh stop 可进行关闭
+
+5、日志查看方式：
+进入/suntek-dgs-admin/logs目录查看
+
+6、环境配置：
+进入/suntek-dgs-admin/conf目录，
+vim application.yml进行配置修改
+请根据配置文件的注释进行按需修改，同时保证YAML文件格式的正确性，以确保程序可以运行。
+
+7、更新升级：
+进入 /suntek-dgs-admin/bin目录
+替换suntek-dgs-admin-1.0.0.jar文件
+
+关于配置文件密码加密：
+每个环境的用户名密码可能不相同，此时需要重新生成，进入bin目录，执行命令
+# 先修改input="密码"
+java -cp jasypt-1.9.2.jar org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI input="suntek" password=EbfYkitulv73I2p0mXI50JMXoaxZTKJ7 algorithm=PBEWithMD5AndDES
+执行后将密码拷贝到配置文件password:ENC(XXXX)

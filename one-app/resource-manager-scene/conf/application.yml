@@ -1,0 +1,83 @@
+server:
+  port: 15465
+  servlet:
+    context-path: /
+apollo:
+  bootstrap:
+     enabled: true
+     namespaces: application
+  meta: http://172.25.20.143:8080
+app:
+  id: vplus
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  jmx:
+    default-domain: scene-management
+  datasource:
+    jdbc-url: jdbc:mysql://172.25.20.143:3306/pd_scemanage?characterEncoding=utf8
+    username: videoweb
+    password: suntek
+    #password: ENC(4uHa1ObsBtaRThlw6Kh5DA==)
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    #url: jdbc:snowball://172.25.21.17:8123/videoweb?socket_timeout=3000000
+    #username: default
+    #password:
+    #driver-class-name: com.inforefiner.snowball.SnowballDriver
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 15
+      auto-commit: true
+      idle-timeout: 30000
+      pool-name: viid-datasource-pool
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+      validation-timeout: 10000
+
+  jackson:
+    date-format:  yyyyMMddHHmmss
+    time-zone: GMT+8
+    serialization:
+      write-dates-as-timestamps:  false
+
+logging:
+  level:
+    root: info
+    org.springframework: info
+    org.apache.ibatis: debug
+    com.suntek.resource: debug
+
+logback:
+  logPath: ../logs
+  appname: resource-scene
+
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql
+
+mybatis:
+  mapUnderscoreToCamelCase: true
+  mapper-locations: classpath:com.suntek.resource.manager.scene.mapper.**.*.xml
+  
+
+fdfs:
+  port: 8088
+  tracker-list: 172.25.21.29:22122
+  nginx:
+    ip: 172.25.21.29
+    port: 8088
+  # 读取时间
+  soTimeout: 1501
+  # 连接超时时间
+  connectTimeout: 691
+  # 缩略图宽
+  thumbImage:
+    width: 150
+    # 缩略图高
+    height: 150

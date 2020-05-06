@@ -295,7 +295,8 @@ else
     STOP|Stop|stop) model_stop;;
     STATUS|status|status) model_status;;
     RESTART|Restart|restart)
-        MODEL_JAR=` ps -ef |grep -w "${GREP_KEY}" |grep ${localServerId}| grep -v grep | awk '{print $18}' `
+        model_status
+        MODEL_JAR=` ps -ef |grep ${localServerId}| grep -v grep | awk '{print $18}' `
         model_stop
         file_is_exist
         echo "${MODEL_JAR}"

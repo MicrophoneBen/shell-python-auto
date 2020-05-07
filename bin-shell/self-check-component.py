@@ -7,7 +7,10 @@ __date__ = '2020/5/07'
 
 import pymysql
 import configparser
-import re
+import redis
+import rediscluster
+# 导入安装包
+from pykafka import KafkaClient
 
 
 def config_read():
@@ -65,17 +68,21 @@ def config_read():
     return config_dict
 
 
-def mysql_connector_test(mysql_config):
-    print(mysql_config)
+def mysql_connector_test(ip, port, user, password, database):
+    print("当前的MySql连接信息是 ： ", ip, port, user, password, database)
 
     # 注意把password设为你的root口令:
-    conn = pymysql.connect(host=mysql_config['ip'], port=int(mysql_config['port']),
-                           user=mysql_config['user'], passwd=mysql_config['password'], db=mysql_config['database'])
+    conn = pymysql.connect(host=ip, port=int(port), user=user, password=password, database=database)
+    return conn
+
+
+def handler_sysmanager_db(ip, port, user, password, database):
+    conn = mysql_connector_test(ip, port, user, password, database)
     # 运行查询:
     cursor = conn.cursor()
     cursor.execute('select * from SYS_USER where USER_CODE = %s', ['admin'])
     values = cursor.fetchall()
-    print(values)
+    print("查询数据库获取admin用户的信息", values)
     # 关闭Cursor和Connection:
     cursor.close()
 
@@ -108,9 +115,71 @@ def mysql_connector_test(mysql_config):
     conn.close()
 
 
+# Redis单机测试连接
+def redis_connect_test(host, port, password):
+    conn = redis.StrictRedis(connection_pool=redis.ConnectionPool(host=host, port=port, password=password))
+    # String类型的写入和读取
+    conn.set("test_conn", "python_test_redis_conn")
+    value = conn.get("test_conn")
+    print("原来写入的Value是 ： {python_test_redis_conn}， 读取到的Value是 ： %s", value)
+    # 列表类型的写入与读取
+    conn.lpush("list_conn", "python, go, C++, Java")
+    rel = conn.lrange("list_conn", 0, -1)
+    print("原来写入的Value是 ： {python, go, C++, Java}， 读取到的Value是 ： %s", rel)
+
+    conn.delete("test_conn")
+    conn.delete("list_conn")
+
+
+def get_cluster_conn(cluster_nodes):
+    cluster_list = []
+    redis_list = cluster_nodes.split(",")
+    for item in redis_list:
+        redis_node = {}
+        rel = item.split(":")
+        redis_node['host'] = rel[0]
+        redis_node['port'] = rel[1]
+        cluster_list.append(redis_node)
+    print("当前连接测试的Redis集群信息是 : ", cluster_list)
+    conn = rediscluster.RedisCluster(
+        startup_nodes=cluster_list,
+        decode_responses=True,
+        max_connections=300
+    )
+    return conn
+
+
+def handler_redis_cluster(cluster_nodes):
+    conn = get_cluster_conn(cluster_nodes)
+    # String类型的写入和读取
+    conn.set("test_conn", "python_test_redis_conn")
+    value = conn.get("test_conn")
+    print("原来写入的Value是 ： {python_test_redis_conn}， 读取到的Value是 ： ", value)
+    # 列表类型的写入与读取
+    conn.lpush("list_conn", "python, go, C++, Java")
+    rel = conn.lrange("list_conn", 0, -1)
+    print("原来写入的Value是 ： {python, go, C++, Java}， 读取到的Value是 ： ", rel)
+
+    conn.delete("test_conn")
+    conn.delete("list_conn")
+
+
+def handler_kafka_cluster(kafka_nodes):
+    # 设置客户端的连接信息
+    client = KafkaClient(hosts=kafka_nodes)
+    # 打印所有的topic
+    print("当前Kafka的所有topic列表如下 ： ", client.topics)
+
+
 if __name__ == "__main__":
     config_dict = config_read()
+    print("读取到的配置文件如下 ： ", config_dict)
 
-    mysql_connector_test(config_dict)
+    handler_sysmanager_db(config_dict['ip'], config_dict['port'], config_dict['user'],
+                          config_dict['password'], config_dict['database'])
+
+    handler_redis_cluster(config_dict['redis_node'])
+
+    handler_kafka_cluster(config_dict['kafka_node'])
 
     # config_func()

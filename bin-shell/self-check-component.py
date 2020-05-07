@@ -72,16 +72,20 @@ def mysql_connector_test(ip, port, user, password, database):
     print("当前的MySql连接信息是 ： ", ip, port, user, password, database)
 
     # 注意把password设为你的root口令:
-    conn = pymysql.connect(host=ip, port=int(port), user=user, password=password, database=database)
+    conn = pymysql.connect(host=ip, port=int(port), user=user, password=password,
+                           database=database, connect_timeout=2)
     return conn
 
 
 def handler_sysmanager_db(ip, port, user, password, database):
     conn = mysql_connector_test(ip, port, user, password, database)
     # 运行查询:
-    cursor = conn.cursor()
-    cursor.execute('select * from SYS_USER where USER_CODE = %s', ['admin'])
-    values = cursor.fetchall()
+    try:
+        cursor = conn.cursor()
+        cursor.execute('select * from SYS_USER where USER_CODE = %s', ['admin'])
+        values = cursor.fetchall()
+    except Exception as exception:
+        print(exception.__cause__)
     print("查询数据库获取admin用户的信息", values)
     # 关闭Cursor和Connection:
     cursor.close()
@@ -100,6 +104,7 @@ def handler_sysmanager_db(ip, port, user, password, database):
     except Exception as exception:
         # 有异常，回滚
         conn.rollback()
+        print(exception.__cause__)
     cursor.close()
     # 得到一个可以执行SQL语句的光标对象
     cursor = conn.cursor()
@@ -111,13 +116,24 @@ def handler_sysmanager_db(ip, port, user, password, database):
     except Exception as e:
         # 有异常，回滚事务
         conn.rollback()
+        print(e.__cause__)
     cursor.close()
     conn.close()
 
 
 # Redis单机测试连接
 def redis_connect_test(host, port, password):
-    conn = redis.StrictRedis(connection_pool=redis.ConnectionPool(host=host, port=port, password=password))
+    try:
+        conn = redis.StrictRedis(connection_pool=redis.ConnectionPool(host=host, port=port, password=password))
+        conn.ping()
+        return conn
+    except Exception as ex:
+        print(ex.__cause__)
+        print("Redis集群连接异常")
+
+
+def handle_redis_singleton(host, port, password):
+    conn = redis_connect_test(host, port, password)
     # String类型的写入和读取
     conn.set("test_conn", "python_test_redis_conn")
     value = conn.get("test_conn")
@@ -141,12 +157,17 @@ def get_cluster_conn(cluster_nodes):
         redis_node['port'] = rel[1]
         cluster_list.append(redis_node)
     print("当前连接测试的Redis集群信息是 : ", cluster_list)
-    conn = rediscluster.RedisCluster(
-        startup_nodes=cluster_list,
-        decode_responses=True,
-        max_connections=300
-    )
-    return conn
+    try:
+        conn = rediscluster.RedisCluster(
+            startup_nodes=cluster_list,
+            decode_responses=True,
+            max_connections=300,
+            socket_connect_timeout=0.4)
+        conn.ping()
+        return conn
+    except Exception as ex:
+        print(ex.__cause__)
+        print("Redis集群连接异常")
 
 
 def handler_redis_cluster(cluster_nodes):

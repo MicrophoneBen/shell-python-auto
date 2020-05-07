@@ -1,0 +1,8 @@
+request==2.23.0
+redis-py-cluster==2.0.0
+urllib3==1.25.9
+redis==3.5.0
+pymysql==0.9.3
+pykafka==2.8.0
+zkpython==0.4.2
+kazoo==2.7.0

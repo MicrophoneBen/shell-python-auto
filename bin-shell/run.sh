@@ -313,7 +313,7 @@ else
     STOP|Stop|stop) model_stop;;
     STATUS|status|status) model_status;;
     RESTART|Restart|restart) restart_app;;
-    *) echo "illage parameter : $1";print_usage;;
+    *) echo "illegal parameter : $1";print_usage;;
     esac
 fi
 }
